@@ -1,0 +1,624 @@
+/* ============================================================
+   PERSONAL WEBSITE — AARAV
+   Style guide:
+     Warm off-white background, near-black ink, terracotta accent
+     Bebas Neue (display) · DM Sans (body) · Dancing Script (signature)
+   ============================================================ */
+
+
+/* ── 1. DESIGN TOKENS ─────────────────────────────────────── */
+:root {
+  /* Colours */
+  --bg:           #f5f0eb;   /* warm off-white */
+  --bg-alt:       #ede7df;   /* slightly deeper warm white for alt sections */
+  --ink:          #0f0f0f;   /* near-black */
+  --ink-light:    #6b6056;   /* muted warm grey for secondary text */
+  --accent:       #c94f2a;   /* terracotta red — the bold, personal signature colour */
+  --accent-light: #f2d0c4;   /* pale terracotta for backgrounds */
+  --white:        #ffffff;
+
+  /* Typography */
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-body:    'DM Sans', sans-serif;
+  --font-sig:     'Dancing Script', cursive;
+
+  /* Spacing */
+  --section-pad:  clamp(80px, 12vw, 160px);
+  --gutter:       clamp(24px, 6vw, 96px);
+
+  /* Transitions */
+  --ease:         cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-soft:    cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+
+/* ── 2. RESET & BASE ──────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  font-size: 16px;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-weight: 400;
+  line-height: 1.6;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+em {
+  font-style: italic;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+
+/* ── 3. SCROLL REVEAL ANIMATION SYSTEM ────────────────────── */
+/* Elements with class .reveal start invisible and slide up.
+   JS adds .visible when they enter the viewport.             */
+.reveal {
+  opacity: 0;
+  transform: translateY(32px);
+  transition:
+    opacity 0.8s var(--ease),
+    transform 0.8s var(--ease);
+  transition-delay: var(--delay, 0ms);
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Hero elements use a different entrance (fade in from slight scale) */
+.hero-animate {
+  opacity: 0;
+  transform: translateY(20px);
+  transition:
+    opacity 0.9s var(--ease),
+    transform 0.9s var(--ease);
+}
+
+.hero-animate.loaded {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+
+/* ── 4. SECTION LABEL (small eyebrow text) ─────────────────── */
+.section-label {
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-light);
+  margin-bottom: 48px;
+}
+
+
+/* ── 5. HERO SECTION ───────────────────────────────────────── */
+#hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: var(--section-pad) var(--gutter);
+  background-color: var(--ink);   /* dark hero — maximum contrast, graphic impact */
+  color: var(--bg);
+  overflow: hidden;
+}
+
+/* Subtle textured grain overlay (pure CSS noise — no image) */
+#hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  opacity: 0.15;
+  pointer-events: none;
+}
+
+/* Small label at the very top */
+.hero-eyebrow {
+  font-size: 0.65rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--ink-light);
+  color: rgba(245, 240, 235, 0.4);
+  margin-bottom: 24px;
+}
+
+/* The massive display name */
+.hero-name {
+  font-family: var(--font-display);
+  font-size: clamp(100px, 22vw, 280px);
+  line-height: 0.9;
+  letter-spacing: -0.01em;
+  color: var(--bg);
+  margin-bottom: 0;
+  /* Each word wraps in a span for staggered animation */
+}
+
+.hero-name-line {
+  display: block;
+}
+
+/* Handwritten signature — appears right under the display name */
+.hero-signature {
+  font-family: var(--font-sig);
+  font-size: clamp(32px, 5vw, 56px);
+  color: var(--accent);
+  margin-top: 8px;
+  margin-bottom: 32px;
+  line-height: 1;
+}
+
+/* Tagline */
+.hero-tagline {
+  font-size: clamp(15px, 2.2vw, 20px);
+  font-weight: 300;
+  line-height: 1.7;
+  color: rgba(245, 240, 235, 0.75);
+  max-width: 360px;
+  margin-bottom: 32px;
+}
+
+/* Role chips */
+.hero-roles {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.role-chip {
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(245, 240, 235, 0.55);
+}
+
+.role-divider {
+  color: var(--accent);
+  font-size: 1rem;
+}
+
+/* Scroll cue — animated vertical line with label */
+.hero-scroll-cue {
+  position: absolute;
+  bottom: 48px;
+  left: var(--gutter);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.scroll-label {
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(245, 240, 235, 0.3);
+  writing-mode: vertical-rl;
+}
+
+.scroll-line {
+  width: 1px;
+  height: 60px;
+  background: linear-gradient(to bottom, rgba(201, 79, 42, 0.8), transparent);
+  animation: scrollPulse 2s ease-in-out infinite;
+}
+
+@keyframes scrollPulse {
+  0%, 100% { opacity: 0.3; transform: scaleY(1); }
+  50%       { opacity: 1;   transform: scaleY(1.15); }
+}
+
+
+/* ── 6. ABOUT SECTION ──────────────────────────────────────── */
+#about {
+  padding: var(--section-pad) var(--gutter);
+  background-color: var(--bg);
+}
+
+.about-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(40px, 6vw, 96px);
+  align-items: start;
+  margin-top: 16px;
+}
+
+.about-heading {
+  font-family: var(--font-display);
+  font-size: clamp(48px, 7vw, 96px);
+  line-height: 1;
+  letter-spacing: -0.01em;
+  margin-bottom: 28px;
+  color: var(--ink);
+}
+
+.about-heading em {
+  color: var(--accent);
+  font-family: var(--font-sig);
+  font-size: 0.9em;
+}
+
+/* The actual about paragraph (will be replaced with real text) */
+.about-body-placeholder {
+  border: 1.5px dashed var(--accent-light);
+  border-radius: 6px;
+  padding: 24px;
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+}
+
+.placeholder-hint {
+  font-size: 0.85rem;
+  color: var(--ink-light);
+  font-style: italic;
+  line-height: 1.6;
+}
+
+/* Real about body text (use this when you're ready) */
+.about-body {
+  font-size: clamp(16px, 1.5vw, 18px);
+  font-weight: 300;
+  color: var(--ink);
+  line-height: 1.8;
+  max-width: 480px;
+}
+
+/* Right side: image placeholder */
+.about-image-placeholder {
+  aspect-ratio: 4 / 5;
+  background-color: var(--accent-light);
+  border-radius: 4px;
+  display: flex;
+  align-items: flex-end;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.about-image-placeholder::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 12px,
+    rgba(201, 79, 42, 0.06) 12px,
+    rgba(201, 79, 42, 0.06) 13px
+  );
+}
+
+.about-image-placeholder span {
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent);
+  position: relative;
+  z-index: 1;
+}
+
+
+/* ── 7. BUCKET LIST SECTION ────────────────────────────────── */
+#bucket-list {
+  padding: var(--section-pad) var(--gutter);
+  background-color: var(--bg-alt);
+  overflow: hidden;
+}
+
+.bucket-intro {
+  margin-bottom: 72px;
+}
+
+.bucket-heading {
+  font-family: var(--font-display);
+  font-size: clamp(48px, 7vw, 96px);
+  line-height: 1;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  margin-bottom: 16px;
+}
+
+.bucket-heading em {
+  color: var(--accent);
+  font-family: var(--font-sig);
+  font-size: 0.9em;
+}
+
+.bucket-subtext {
+  font-size: clamp(14px, 1.4vw, 16px);
+  font-weight: 300;
+  color: var(--ink-light);
+  max-width: 440px;
+  line-height: 1.7;
+}
+
+/* Tree wrapper — positions root node + SVG + items */
+.bucket-tree-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+/* The root node at the top of the tree */
+.bucket-root {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background-color: var(--ink);
+  color: var(--bg);
+  font-family: var(--font-sig);
+  font-size: 1.1rem;
+  position: relative;
+  z-index: 2;
+  box-shadow: 0 0 0 8px var(--bg-alt), 0 0 0 9px var(--ink);
+  transition: transform 0.3s var(--ease);
+}
+
+.bucket-root:hover {
+  transform: scale(1.05);
+}
+
+/* SVG overlay for the branch lines */
+.bucket-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  overflow: visible;
+}
+
+/* Grid of bucket items */
+.bucket-items {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+  width: 100%;
+  margin-top: 48px;
+  position: relative;
+  z-index: 2;
+}
+
+/* Individual bucket item card */
+.bucket-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  background: var(--white);
+  border: 1px solid rgba(15, 15, 15, 0.08);
+  border-radius: 8px;
+  padding: 18px 20px;
+  cursor: pointer;
+  transition:
+    border-color 0.25s ease,
+    transform 0.25s var(--ease),
+    box-shadow 0.25s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bucket-item:hover {
+  border-color: var(--accent);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(201, 79, 42, 0.12);
+}
+
+/* The little checkbox circle */
+.bucket-check {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(15, 15, 15, 0.2);
+  margin-top: 2px;
+  position: relative;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+/* Checkmark (hidden until .done) */
+.bucket-check::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  background: var(--white);
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  transition: transform 0.2s var(--ease);
+}
+
+/* Completed state */
+.bucket-item.done .bucket-check {
+  background-color: var(--accent);
+  border-color: var(--accent);
+}
+
+.bucket-item.done .bucket-check::after {
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.bucket-item.done > span {
+  text-decoration: line-through;
+  color: var(--ink-light);
+}
+
+.bucket-item > span {
+  font-size: 0.95rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--ink);
+  transition: color 0.2s ease;
+}
+
+/* SVG branch line style (applied in JS) */
+.bucket-branch {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.5;
+  stroke-dasharray: var(--line-length, 400);
+  stroke-dashoffset: var(--line-length, 400);
+  transition: stroke-dashoffset 1.2s var(--ease);
+  opacity: 0.35;
+}
+
+.bucket-branch.drawn {
+  stroke-dashoffset: 0;
+}
+
+
+/* ── 8. CONTACT SECTION ─────────────────────────────────────── */
+#contact {
+  padding: var(--section-pad) var(--gutter);
+  background-color: var(--ink);
+  color: var(--bg);
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+}
+
+.contact-inner {
+  width: 100%;
+}
+
+.contact-eyebrow {
+  font-size: 0.7rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: rgba(245, 240, 235, 0.35);
+  margin-bottom: 16px;
+}
+
+.contact-heading {
+  font-family: var(--font-display);
+  font-size: clamp(72px, 14vw, 180px);
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  color: var(--bg);
+  margin-bottom: 48px;
+}
+
+/* Contact link row */
+.contact-links {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 72px;
+}
+
+.contact-link {
+  font-size: clamp(14px, 1.5vw, 16px);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(245, 240, 235, 0.6);
+  position: relative;
+  transition: color 0.2s ease;
+}
+
+/* Underline grows in on hover */
+.contact-link::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0%;
+  height: 1px;
+  background: var(--accent);
+  transition: width 0.3s var(--ease);
+}
+
+.contact-link:hover {
+  color: var(--bg);
+}
+
+.contact-link:hover::after {
+  width: 100%;
+}
+
+.contact-dot {
+  color: rgba(245, 240, 235, 0.2);
+  font-size: 1rem;
+}
+
+/* Signature stamp in the footer */
+.contact-signature {
+  font-family: var(--font-sig);
+  font-size: clamp(40px, 8vw, 96px);
+  color: rgba(201, 79, 42, 0.25);
+  line-height: 1;
+  user-select: none;
+}
+
+
+/* ── 9. RESPONSIVE (mobile) ─────────────────────────────────── */
+@media (max-width: 700px) {
+
+  /* About: stack the two columns */
+  .about-layout {
+    grid-template-columns: 1fr;
+  }
+
+  /* About: put image first on mobile for visual impact */
+  .about-visual {
+    order: -1;
+  }
+
+  .about-image-placeholder {
+    aspect-ratio: 3 / 2;
+  }
+
+  /* Bucket list: single column */
+  .bucket-items {
+    grid-template-columns: 1fr;
+  }
+
+}
+
+@media (max-width: 480px) {
+
+  .hero-name {
+    font-size: clamp(80px, 22vw, 140px);
+  }
+
+  .contact-heading {
+    font-size: clamp(60px, 18vw, 100px);
+  }
+
+}

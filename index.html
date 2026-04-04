@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aarav</title>
+
+  <!-- Fonts from Google Fonts (free, no install needed) -->
+  <!-- Bebas Neue: bold display font for the hero -->
+  <!-- DM Sans: clean body text -->
+  <!-- Dancing Script: handwritten-style signature -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=Dancing+Script:wght@600&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+  <!-- ===================== -->
+  <!--   SECTION 1: HERO     -->
+  <!-- ===================== -->
+  <section id="hero">
+
+    <!-- Decorative top bar (visual punctuation) -->
+    <div class="hero-eyebrow">Portfolio — 2024</div>
+
+    <!-- The name — huge, editorial, impossible to miss -->
+    <h1 class="hero-name">
+      <span class="hero-name-line" data-delay="0">Aarav</span>
+    </h1>
+
+    <!-- Handwritten signature underneath the name -->
+    <div class="hero-signature" data-delay="200">Aarav</div>
+
+    <!-- Tagline — professional but personal -->
+    <p class="hero-tagline" data-delay="400">
+      Designing with intention.<br />Writing with heart.
+    </p>
+
+    <!-- Role chips -->
+    <div class="hero-roles" data-delay="600">
+      <span class="role-chip">Student</span>
+      <span class="role-divider">·</span>
+      <span class="role-chip">Designer</span>
+      <span class="role-divider">·</span>
+      <span class="role-chip">Writer</span>
+    </div>
+
+    <!-- Scroll cue -->
+    <div class="hero-scroll-cue" data-delay="800">
+      <span class="scroll-label">Scroll</span>
+      <div class="scroll-line"></div>
+    </div>
+
+  </section>
+
+
+  <!-- ===================== -->
+  <!--   SECTION 2: ABOUT    -->
+  <!-- ===================== -->
+  <section id="about">
+
+    <div class="section-label reveal">About</div>
+
+    <div class="about-layout">
+
+      <!-- Left: text -->
+      <div class="about-text reveal" style="--delay: 100ms">
+        <h2 class="about-heading">A little about<br /><em>me.</em></h2>
+
+        <!-- ✏️ PLACEHOLDER — Replace this paragraph with your own words -->
+        <div class="about-body-placeholder">
+          <p class="placeholder-hint">[ Your about text goes here — 2 to 4 sentences in your own voice ]</p>
+        </div>
+        <!-- End placeholder -->
+
+      </div>
+
+      <!-- Right: visual placeholder block -->
+      <div class="about-visual reveal" style="--delay: 250ms">
+        <div class="about-image-placeholder">
+          <span>Photo / illustration</span>
+        </div>
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- ============================= -->
+  <!--   SECTION 3: BUCKET LIST      -->
+  <!-- ============================= -->
+  <section id="bucket-list">
+
+    <div class="section-label reveal">Dreams & Goals</div>
+
+    <div class="bucket-intro reveal" style="--delay: 100ms">
+      <h2 class="bucket-heading">Things I want<br />to <em>do.</em></h2>
+      <p class="bucket-subtext">A living list of the experiences, places, and moments I'm building toward.</p>
+    </div>
+
+    <!-- The branching tree lives here — JS will draw SVG lines between items -->
+    <div class="bucket-tree-wrapper">
+
+      <!-- Central origin node — the visual "root" -->
+      <div class="bucket-root" id="bucketRoot">
+        <span>My List</span>
+      </div>
+
+      <!-- SVG canvas for the connecting lines (drawn by script.js) -->
+      <svg class="bucket-svg" id="bucketSvg" aria-hidden="true"></svg>
+
+      <!-- ✏️ BUCKET LIST ITEMS — Edit the text inside each .bucket-item -->
+      <!-- To mark an item as done, add class="bucket-item done" -->
+      <div class="bucket-items" id="bucketItems">
+
+        <div class="bucket-item reveal" data-delay="0">
+          <div class="bucket-check"></div>
+          <span>Live in a foreign city for a month</span>
+        </div>
+
+        <div class="bucket-item reveal" data-delay="80">
+          <div class="bucket-check"></div>
+          <span>Write something that makes a stranger feel understood</span>
+        </div>
+
+        <div class="bucket-item reveal" data-delay="160">
+          <div class="bucket-check"></div>
+          <span>Design a project I'm genuinely proud of</span>
+        </div>
+
+        <div class="bucket-item reveal" data-delay="240">
+          <div class="bucket-check"></div>
+          <span>Watch the sunrise from a mountain</span>
+        </div>
+
+        <div class="bucket-item reveal" data-delay="320">
+          <div class="bucket-check"></div>
+          <span>Learn to cook one dish from a completely new cuisine</span>
+        </div>
+
+        <div class="bucket-item reveal" data-delay="400">
+          <div class="bucket-check"></div>
+          <span>Read 50 books in a year</span>
+        </div>
+
+        <div class="bucket-item reveal" data-delay="480">
+          <div class="bucket-check"></div>
+          <span>Build something that outlives the moment it was made</span>
+        </div>
+
+        <div class="bucket-item reveal" data-delay="560">
+          <div class="bucket-check"></div>
+          <span>Take a solo trip with no itinerary</span>
+        </div>
+
+      </div>
+      <!-- End bucket items -->
+
+    </div>
+
+  </section>
+
+
+  <!-- ======================== -->
+  <!--   SECTION 4: CONTACT     -->
+  <!-- ======================== -->
+  <section id="contact">
+
+    <div class="contact-inner reveal">
+
+      <p class="contact-eyebrow">Don't be a stranger</p>
+      <h2 class="contact-heading">Let's talk.</h2>
+
+      <!-- ✏️ Replace the href values with your real links -->
+      <div class="contact-links">
+        <a href="mailto:your@email.com" class="contact-link">Email</a>
+        <span class="contact-dot">—</span>
+        <a href="#" class="contact-link">Instagram</a>
+        <span class="contact-dot">—</span>
+        <a href="#" class="contact-link">LinkedIn</a>
+      </div>
+
+      <!-- Signature as footer stamp -->
+      <div class="contact-signature">Aarav</div>
+
+    </div>
+
+  </section>
+
+
+  <script src="script.js"></script>
+</body>
+</html>
