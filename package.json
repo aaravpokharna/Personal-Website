@@ -1,0 +1,15 @@
+{
+  "name": "personal-website",
+  "version": "1.0.0",
+  "description": "Aarav's personal website — student, designer, writer.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint": "eslint script.js",
+    "lint:fix": "eslint script.js --fix",
+    "check": "npm run lint && echo 'All checks passed.'"
+  },
+  "devDependencies": {
+    "eslint": "^9.0.0"
+  }
+}
