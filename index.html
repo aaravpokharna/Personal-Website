@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Aarav</title>
+  <title>Aarav Pokharna</title>
 
   <!-- Fonts from Google Fonts (free, no install needed) -->
   <!-- Bebas Neue: bold display font for the hero -->
@@ -29,10 +29,11 @@
     <!-- The name — huge, editorial, impossible to miss -->
     <h1 class="hero-name">
       <span class="hero-name-line" data-delay="0">Aarav</span>
+      <span class="hero-name-line" data-delay="80">Pokharna</span>
     </h1>
 
     <!-- Handwritten signature underneath the name -->
-    <div class="hero-signature" data-delay="200">Aarav</div>
+    <div class="hero-signature" data-delay="200">Aarav Pokharna</div>
 
     <!-- Tagline — professional but personal -->
     <p class="hero-tagline" data-delay="400">
@@ -70,11 +71,10 @@
       <div class="about-text reveal" style="--delay: 100ms">
         <h2 class="about-heading">A little about<br /><em>me.</em></h2>
 
-        <!-- ✏️ PLACEHOLDER — Replace this paragraph with your own words -->
-        <div class="about-body-placeholder">
-          <p class="placeholder-hint">[ Your about text goes here — 2 to 4 sentences in your own voice ]</p>
-        </div>
-        <!-- End placeholder -->
+        <p class="about-body">
+          I love falling into rabbit holes — design, ideas, the questions that don't have clean answers.
+          Still figuring it all out, one dribble at a time.
+        </p>
 
       </div>
 
@@ -99,68 +99,84 @@
 
     <div class="bucket-intro reveal" style="--delay: 100ms">
       <h2 class="bucket-heading">Things I want<br />to <em>do.</em></h2>
-      <p class="bucket-subtext">A living list of the experiences, places, and moments I'm building toward.</p>
+      <p class="bucket-subtext">Drag to spin. Click a panel to explore the list.</p>
     </div>
 
-    <!-- The branching tree lives here — JS will draw SVG lines between items -->
-    <div class="bucket-tree-wrapper">
+    <!-- Basketball interactive element -->
+    <div class="basketball-stage reveal" style="--delay: 200ms">
 
-      <!-- Central origin node — the visual "root" -->
-      <div class="bucket-root" id="bucketRoot">
-        <span>My List</span>
+      <!-- Wrapper holds ball + the four floating labels -->
+      <div class="ball-wrapper">
+
+        <!-- Labels sit outside the ball, fixed in position, clickable -->
+        <div class="ball-label top"    data-sector="top"    tabindex="0" role="button" aria-label="Adventures panel">Adventures</div>
+        <div class="ball-label right"  data-sector="right"  tabindex="0" role="button" aria-label="Create panel">Create</div>
+        <div class="ball-label bottom" data-sector="bottom" tabindex="0" role="button" aria-label="Connect panel">Connect</div>
+        <div class="ball-label left"   data-sector="left"   tabindex="0" role="button" aria-label="Learn panel">Learn</div>
+
+        <!-- The basketball — drag to spin, click to select a sector -->
+        <div class="basketball" id="basketball" role="group" aria-label="Spinning basketball bucket list">
+          <svg class="ball-svg" id="ballSvg" viewBox="0 0 400 400" aria-hidden="true">
+            <defs>
+              <!-- Radial gradient: light from top-left for 3D sphere effect -->
+              <radialGradient id="ballGrad" cx="35%" cy="30%" r="70%" gradientUnits="objectBoundingBox">
+                <stop offset="0%"   stop-color="#f79c5b"/>
+                <stop offset="40%"  stop-color="#e06020"/>
+                <stop offset="75%"  stop-color="#c04010"/>
+                <stop offset="100%" stop-color="#7a1e00"/>
+              </radialGradient>
+              <!-- Rim light: subtle warm glow from opposite side -->
+              <radialGradient id="rimLight" cx="78%" cy="72%" r="45%">
+                <stop offset="0%"   stop-color="#ff8c40" stop-opacity="0.25"/>
+                <stop offset="100%" stop-color="#ff8c40" stop-opacity="0"/>
+              </radialGradient>
+              <!-- Clip to the circle -->
+              <clipPath id="ballClip">
+                <circle cx="200" cy="200" r="196"/>
+              </clipPath>
+            </defs>
+
+            <!-- Drop shadow ring -->
+            <circle cx="200" cy="202" r="196" fill="rgba(0,0,0,0.18)" />
+
+            <!-- Ball body: orange gradient -->
+            <circle cx="200" cy="200" r="196" fill="url(#ballGrad)"/>
+
+            <!-- Rim light overlay -->
+            <circle cx="200" cy="200" r="196" fill="url(#rimLight)"/>
+
+            <!-- Seam lines — these rotate when the ball spins -->
+            <!-- All seams are in one group (.ball-seams) so JS can rotate them together -->
+            <g class="ball-seams" clip-path="url(#ballClip)">
+              <!-- Vertical seam -->
+              <line x1="200" y1="4"   x2="200" y2="396" class="seam-line"/>
+              <!-- Horizontal seam -->
+              <line x1="4"   y1="200" x2="396" y2="200" class="seam-line"/>
+              <!-- Upper arch — the distinctive basketball curve -->
+              <path d="M 62,92 Q 200,16 338,92"  class="seam-line" fill="none"/>
+              <!-- Lower arch -->
+              <path d="M 62,308 Q 200,384 338,308" class="seam-line" fill="none"/>
+            </g>
+
+            <!-- Specular highlight (shiny spot — makes it look 3D) -->
+            <ellipse cx="148" cy="138" rx="54" ry="36" fill="white" opacity="0.11" clip-path="url(#ballClip)"/>
+          </svg>
+        </div>
+        <!-- End basketball -->
+
       </div>
+      <!-- End ball-wrapper -->
 
-      <!-- SVG canvas for the connecting lines (drawn by script.js) -->
-      <svg class="bucket-svg" id="bucketSvg" aria-hidden="true"></svg>
-
-      <!-- ✏️ BUCKET LIST ITEMS — Edit the text inside each .bucket-item -->
-      <!-- To mark an item as done, add class="bucket-item done" -->
-      <div class="bucket-items" id="bucketItems">
-
-        <div class="bucket-item reveal" data-delay="0">
-          <div class="bucket-check"></div>
-          <span>Live in a foreign city for a month</span>
-        </div>
-
-        <div class="bucket-item reveal" data-delay="80">
-          <div class="bucket-check"></div>
-          <span>Write something that makes a stranger feel understood</span>
-        </div>
-
-        <div class="bucket-item reveal" data-delay="160">
-          <div class="bucket-check"></div>
-          <span>Design a project I'm genuinely proud of</span>
-        </div>
-
-        <div class="bucket-item reveal" data-delay="240">
-          <div class="bucket-check"></div>
-          <span>Watch the sunrise from a mountain</span>
-        </div>
-
-        <div class="bucket-item reveal" data-delay="320">
-          <div class="bucket-check"></div>
-          <span>Learn to cook one dish from a completely new cuisine</span>
-        </div>
-
-        <div class="bucket-item reveal" data-delay="400">
-          <div class="bucket-check"></div>
-          <span>Read 50 books in a year</span>
-        </div>
-
-        <div class="bucket-item reveal" data-delay="480">
-          <div class="bucket-check"></div>
-          <span>Build something that outlives the moment it was made</span>
-        </div>
-
-        <div class="bucket-item reveal" data-delay="560">
-          <div class="bucket-check"></div>
-          <span>Take a solo trip with no itinerary</span>
-        </div>
-
+      <!-- Content panel — slides in below when a label or sector is clicked -->
+      <!-- ✏️ BUCKET LIST ITEMS — Edit items in script.js under the SECTORS object -->
+      <div class="ball-panel" id="ballPanel" aria-live="polite">
+        <button class="ball-panel-close" id="ballPanelClose" aria-label="Close panel">&#x2715;</button>
+        <h3 class="ball-panel-title" id="ballPanelTitle"></h3>
+        <ul class="ball-panel-list" id="ballPanelList"></ul>
       </div>
-      <!-- End bucket items -->
 
     </div>
+    <!-- End basketball stage -->
 
   </section>
 
@@ -175,17 +191,14 @@
       <p class="contact-eyebrow">Don't be a stranger</p>
       <h2 class="contact-heading">Let's talk.</h2>
 
-      <!-- ✏️ Replace the href values with your real links -->
       <div class="contact-links">
-        <a href="mailto:your@email.com" class="contact-link">Email</a>
+        <a href="https://www.instagram.com/aaravp_/" class="contact-link" target="_blank" rel="noopener noreferrer">Instagram</a>
         <span class="contact-dot">—</span>
-        <a href="#" class="contact-link">Instagram</a>
-        <span class="contact-dot">—</span>
-        <a href="#" class="contact-link">LinkedIn</a>
+        <a href="https://bit.ly/aaravpokharna" class="contact-link" target="_blank" rel="noopener noreferrer">LinkedIn</a>
       </div>
 
       <!-- Signature as footer stamp -->
-      <div class="contact-signature">Aarav</div>
+      <div class="contact-signature">Aarav Pokharna</div>
 
     </div>
 

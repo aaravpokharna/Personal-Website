@@ -2,14 +2,16 @@
    PERSONAL WEBSITE — script.js
    What this file does:
      1. Hero entrance animation (staggered fade-in on page load)
-     2. Scroll-reveal animation (elements slide in as you scroll)
-     3. Bucket list — SVG branch lines from root to each item
-     4. Bucket list — click to toggle done/undone state
+     2. Scroll-reveal animation (elements slide up as you scroll)
+     3. Basketball bucket list:
+        - Drag left/right to spin the ball (with momentum)
+        - Click a sector (or a label) to open its content panel
+        - Idle spin plays gently on load
    ============================================================ */
 
 
 /* ── 1. HERO ENTRANCE ANIMATION ─────────────────────────────
-   On page load, each hero element fades in one after another.
+   Each hero element fades in one after another.
    The delay is read from the element's data-delay attribute.  */
 
 function initHero() {
@@ -18,21 +20,17 @@ function initHero() {
   animatedEls.forEach(el => {
     const delay = parseInt(el.getAttribute('data-delay') || '0', 10);
 
-    // Start invisible (handled by CSS .hero-animate class)
     el.classList.add('hero-animate');
 
-    // Trigger the entrance after the specified delay
     setTimeout(() => {
       el.classList.add('loaded');
-    }, delay + 120); // +120ms base delay so nothing fires before paint
+    }, delay + 120);
   });
 }
 
 
 /* ── 2. SCROLL-REVEAL (IntersectionObserver) ─────────────────
-   Any element with class .reveal will animate in when it
-   enters the viewport. The transition-delay is set via CSS
-   custom property --delay on each element.                   */
+   Elements with .reveal animate in when they enter viewport.  */
 
 function initScrollReveal() {
   const revealEls = document.querySelectorAll('.reveal');
@@ -42,14 +40,13 @@ function initScrollReveal() {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
           entry.target.classList.add('visible');
-          // Once visible, stop observing — no need to re-animate
           observer.unobserve(entry.target);
         }
       });
     },
     {
-      threshold: 0.12,      // trigger when 12% of element is visible
-      rootMargin: '0px 0px -40px 0px'  // fire slightly before element hits bottom of screen
+      threshold: 0.12,
+      rootMargin: '0px 0px -40px 0px',
     }
   );
 
@@ -57,127 +54,237 @@ function initScrollReveal() {
 }
 
 
-/* ── 3. BUCKET LIST — SVG BRANCH LINES ──────────────────────
-   Draws curved lines from the root node (#bucketRoot) to
-   the centre of each bucket item card.
+/* ── 3. BASKETBALL BUCKET LIST ───────────────────────────────
+   The bucket list is an interactive basketball.
 
    How it works:
-   - We measure the position of the root node and each item
-   - We draw an SVG quadratic bezier curve between them
-   - The line starts invisible (stroke-dashoffset trick) and
-     animates into view when the section scrolls into view   */
+   - Drag the ball left or right — the seam lines rotate, giving
+     the impression of a spinning ball with momentum.
+   - Four labels sit around the ball (top/right/bottom/left).
+   - Clicking the ball (or a label) opens a content panel below
+     showing the items for that quadrant.
+   - An idle spin plays automatically on load.
 
-function drawBucketLines() {
-  const root    = document.getElementById('bucketRoot');
-  const svg     = document.getElementById('bucketSvg');
-  const wrapper = document.querySelector('.bucket-tree-wrapper');
-  const items   = document.querySelectorAll('.bucket-item');
+   ✏️  TO UPDATE BUCKET LIST ITEMS: Edit the SECTORS object below.
+   ──────────────────────────────────────────────────────────── */
 
-  if (!root || !svg || !wrapper || items.length === 0) return;
+// Bucket list data — four panels, one per quadrant of the ball.
+// Edit the items arrays to add/change/remove your goals.
+const SECTORS = {
+  top: {
+    label: 'Adventures',
+    items: [
+      'Live in a foreign city for a month',
+      'Watch the sunrise from a mountain',
+      'Take a solo trip with no itinerary',
+    ],
+  },
+  right: {
+    label: 'Create',
+    items: [
+      'Design a project I\'m genuinely proud of',
+      'Build something that outlives the moment it was made',
+      'Write something that makes a stranger feel understood',
+    ],
+  },
+  bottom: {
+    label: 'Connect',
+    items: [
+      '[ Add your goals here ]',
+      '[ Add your goals here ]',
+    ],
+  },
+  left: {
+    label: 'Learn',
+    items: [
+      'Read 50 books in a year',
+      'Learn to cook a dish from a completely new cuisine',
+    ],
+  },
+};
 
-  // Clear any previously drawn lines (e.g. on window resize)
-  svg.innerHTML = '';
+function initBasketball() {
+  const ball        = document.getElementById('basketball');
+  const seamsGroup  = ball ? ball.querySelector('.ball-seams') : null;
+  const panel       = document.getElementById('ballPanel');
+  const panelTitle  = document.getElementById('ballPanelTitle');
+  const panelList   = document.getElementById('ballPanelList');
+  const closeBtn    = document.getElementById('ballPanelClose');
+  const labels      = document.querySelectorAll('.ball-label');
 
-  const wrapperRect = wrapper.getBoundingClientRect();
-  const rootRect    = root.getBoundingClientRect();
+  if (!ball || !seamsGroup) return;
 
-  // Origin point: bottom-centre of the root node
-  const originX = rootRect.left + rootRect.width  / 2 - wrapperRect.left;
-  const originY = rootRect.top  + rootRect.height / 2 - wrapperRect.top;
+  // ── Spin state ──────────────────────────────────────────────
+  let isDragging   = false;
+  let startX       = 0;
+  let prevX        = 0;
+  let rotation     = 0;      // current rotation in degrees
+  let startRot     = 0;      // rotation at drag start
+  let velocity     = 0;      // momentum after drag release
+  let hasDragged   = false;  // true once drag threshold is exceeded
+  let idleFrameId  = null;   // requestAnimationFrame ID for idle spin
+  let momentumId   = null;   // requestAnimationFrame ID for momentum
 
-  items.forEach((item, index) => {
-    const itemRect = item.getBoundingClientRect();
+  // How many degrees the seam group is rotated
+  // (only the seams rotate — the gradient sphere stays still)
+  function applySeamRotation(deg) {
+    rotation = deg;
+    seamsGroup.style.transform = `rotate(${deg}deg)`;
+    seamsGroup.style.transformOrigin = '200px 200px'; // SVG centre
+  }
 
-    // Target point: top-centre of each bucket card
-    const targetX = itemRect.left + itemRect.width  / 2 - wrapperRect.left;
-    const targetY = itemRect.top  + 10               - wrapperRect.top;
+  // ── Idle spin — slow automatic rotation on load ──────────────
+  function idleSpin() {
+    rotation += 0.12;
+    applySeamRotation(rotation);
+    idleFrameId = requestAnimationFrame(idleSpin);
+  }
 
-    // Control point for the bezier curve — pulls the curve outward
-    const midY = (originY + targetY) / 2;
-    const d = `M ${originX} ${originY} Q ${targetX} ${midY}, ${targetX} ${targetY}`;
+  // Start idle after a short delay so page has settled
+  const idleStartTimer = setTimeout(idleSpin, 900);
 
-    // Approximate line length for the dash animation
-    const dx = targetX - originX;
-    const dy = targetY - originY;
-    const lineLength = Math.sqrt(dx * dx + dy * dy) * 1.4; // *1.4 for curve
+  // Stop idle the moment the user interacts
+  function stopIdle() {
+    clearTimeout(idleStartTimer);
+    cancelAnimationFrame(idleFrameId);
+  }
 
-    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    path.setAttribute('d', d);
-    path.setAttribute('class', 'bucket-branch');
-    path.style.setProperty('--line-length', lineLength);
+  // ── Momentum after drag release ──────────────────────────────
+  const FRICTION = 0.93;  // lower = stops faster, higher = keeps spinning longer
 
-    // Stagger the animation per line
-    path.style.transitionDelay = `${index * 80}ms`;
+  function applyMomentum() {
+    velocity *= FRICTION;
+    applySeamRotation(rotation + velocity);
+    if (Math.abs(velocity) > 0.05) {
+      momentumId = requestAnimationFrame(applyMomentum);
+    }
+  }
 
-    svg.appendChild(path);
+  // ── Mouse drag ───────────────────────────────────────────────
+  ball.addEventListener('mousedown', (e) => {
+    stopIdle();
+    cancelAnimationFrame(momentumId);
+    isDragging = true;
+    hasDragged = false;
+    startX     = e.clientX;
+    prevX      = e.clientX;
+    startRot   = rotation;
+    e.preventDefault(); // prevent text selection while dragging
   });
-}
 
-// Animate the lines in when the bucket section enters view
-function initBucketLines() {
-  drawBucketLines(); // draw positions
+  document.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    const dx = e.clientX - startX;
+    if (Math.abs(dx) > 4) hasDragged = true;
+    velocity = (e.clientX - prevX) * 0.6;  // track per-frame velocity
+    prevX    = e.clientX;
+    applySeamRotation(startRot + dx * 0.55);
+  });
 
-  const section = document.getElementById('bucket-list');
-  if (!section) return;
+  document.addEventListener('mouseup', () => {
+    if (!isDragging) return;
+    isDragging = false;
+    applyMomentum();
+  });
 
-  const observer = new IntersectionObserver(
-    (entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          // Small delay so items have animated in first
-          setTimeout(() => {
-            document.querySelectorAll('.bucket-branch').forEach(line => {
-              line.classList.add('drawn');
-            });
-          }, 400);
-          observer.unobserve(entry.target);
-        }
-      });
-    },
-    { threshold: 0.2 }
-  );
+  // ── Touch drag (mobile) ──────────────────────────────────────
+  ball.addEventListener('touchstart', (e) => {
+    stopIdle();
+    cancelAnimationFrame(momentumId);
+    isDragging = true;
+    hasDragged = false;
+    startX     = e.touches[0].clientX;
+    prevX      = startX;
+    startRot   = rotation;
+  }, { passive: true });
 
-  observer.observe(section);
-}
+  document.addEventListener('touchmove', (e) => {
+    if (!isDragging) return;
+    const dx = e.touches[0].clientX - startX;
+    if (Math.abs(dx) > 4) hasDragged = true;
+    velocity = (e.touches[0].clientX - prevX) * 0.6;
+    prevX    = e.touches[0].clientX;
+    applySeamRotation(startRot + dx * 0.55);
+  }, { passive: true });
 
-// Redraw lines if the window is resized (positions will have changed)
-let resizeTimer;
-window.addEventListener('resize', () => {
-  clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(() => {
-    drawBucketLines();
-    // Re-trigger drawn state for lines that were already visible
-    document.querySelectorAll('.bucket-branch').forEach(line => {
-      line.classList.add('drawn');
+  document.addEventListener('touchend', () => {
+    if (!isDragging) return;
+    isDragging = false;
+    applyMomentum();
+  });
+
+  // ── Open a content panel ─────────────────────────────────────
+  function openPanel(sectorKey) {
+    const data = SECTORS[sectorKey];
+    if (!data || !panel || !panelTitle || !panelList) return;
+
+    // Highlight the matching label
+    labels.forEach(l => l.classList.remove('active'));
+    const matchingLabel = document.querySelector(`.ball-label[data-sector="${sectorKey}"]`);
+    if (matchingLabel) matchingLabel.classList.add('active');
+
+    // Fill in the panel content
+    panelTitle.textContent = data.label;
+    panelList.innerHTML = data.items
+      .map(item => `<li>${item}</li>`)
+      .join('');
+
+    // Reveal the panel
+    panel.classList.add('open');
+
+    // Scroll panel into view smoothly
+    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  // ── Click on ball to open sector panel ───────────────────────
+  // Use the click position relative to ball centre to determine
+  // which quadrant (top / right / bottom / left) was clicked.
+  ball.addEventListener('click', (e) => {
+    if (hasDragged) return;  // was a drag, not a tap
+
+    const rect  = ball.getBoundingClientRect();
+    const cx    = rect.left + rect.width  / 2;
+    const cy    = rect.top  + rect.height / 2;
+    const angle = Math.atan2(e.clientY - cy, e.clientX - cx) * (180 / Math.PI);
+    // atan2 returns degrees: 0° = right, 90° = down, ±180° = left, -90° = up
+
+    let sector;
+    if (angle > -45 && angle <= 45)          sector = 'right';
+    else if (angle > 45  && angle <= 135)    sector = 'bottom';
+    else if (angle > 135 || angle <= -135)   sector = 'left';
+    else                                      sector = 'top';
+
+    openPanel(sector);
+  });
+
+  // ── Click on a floating label to open its panel ──────────────
+  labels.forEach(label => {
+    label.addEventListener('click', () => {
+      openPanel(label.getAttribute('data-sector'));
     });
-  }, 200);
-});
 
-
-/* ── 4. BUCKET LIST — CLICK TO TOGGLE ───────────────────────
-   Clicking any bucket item toggles it between
-   done (struck through, filled circle) and undone.          */
-
-function initBucketToggle() {
-  const items = document.querySelectorAll('.bucket-item');
-
-  items.forEach(item => {
-    item.addEventListener('click', () => {
-      item.classList.toggle('done');
+    // Keyboard accessibility: Enter or Space opens the panel
+    label.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        openPanel(label.getAttribute('data-sector'));
+      }
     });
   });
+
+  // ── Close the panel ───────────────────────────────────────────
+  if (closeBtn) {
+    closeBtn.addEventListener('click', () => {
+      panel.classList.remove('open');
+      labels.forEach(l => l.classList.remove('active'));
+    });
+  }
 }
 
 
-/* ── 5. INIT — run everything on page load ───────────────── */
+/* ── 4. INIT — run everything on DOMContentLoaded ────────────*/
 document.addEventListener('DOMContentLoaded', () => {
   initHero();
   initScrollReveal();
-
-  // Bucket lines need a small delay so the layout is fully painted
-  // before we measure element positions
-  setTimeout(() => {
-    initBucketLines();
-    initBucketToggle();
-  }, 100);
+  initBasketball();
 });
