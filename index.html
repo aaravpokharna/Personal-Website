@@ -19,65 +19,44 @@
 <body>
 
   <!-- ================================================ -->
-  <!--   CINEMATIC INTRO OVERLAY                        -->
-  <!--   Plays on first visit, then fades away.         -->
-  <!--   Add your photos inside .intro-photos below.    -->
+  <!--   CINEMATIC INTRO — PERMANENT LANDING PAGE       -->
+  <!--                                                  -->
+  <!--   This is the first thing visitors see.          -->
+  <!--   It stays until they click Explore.             -->
+  <!--                                                  -->
+  <!--   ✏️  TO ADD YOUR PHOTOS:                        -->
+  <!--   Edit the PHOTOS array in script.js (Section 0) -->
+  <!--   with paths to your image files.                -->
+  <!--   The 16×9 grid is generated automatically.      -->
   <!-- ================================================ -->
-  <div id="intro" role="presentation" aria-hidden="true">
+  <div id="intro" role="main">
 
-    <!-- ── Photo layer ───────────────────────────────────
-         Photos live here, revealed by the cursor flashlight.
-         ✏️ Replace the placeholder divs with real <img> tags.
-         Example:
-           <img class="intro-photo" src="assets/photos/photo1.jpg" alt="" />
-         Keep alt="" — these are decorative, not content.
-         Positions are set by CSS classes p1–p6.
-    ──────────────────────────────────────────────────── -->
-    <div class="intro-photos" id="introPhotos">
-      <div class="intro-photo p1" aria-hidden="true">
-        <!-- <img src="assets/photos/photo1.jpg" alt="" /> -->
-        <div class="intro-photo-placeholder"></div>
-      </div>
-      <div class="intro-photo p2" aria-hidden="true">
-        <div class="intro-photo-placeholder"></div>
-      </div>
-      <div class="intro-photo p3" aria-hidden="true">
-        <div class="intro-photo-placeholder"></div>
-      </div>
-      <div class="intro-photo p4" aria-hidden="true">
-        <div class="intro-photo-placeholder"></div>
-      </div>
-      <div class="intro-photo p5" aria-hidden="true">
-        <div class="intro-photo-placeholder"></div>
-      </div>
-      <div class="intro-photo p6" aria-hidden="true">
-        <div class="intro-photo-placeholder"></div>
-      </div>
-    </div>
+    <!-- ── 16×9 photo grid ────────────────────────────────
+         144 cells (16 columns × 9 rows) covering the full screen.
+         JS fills this in — do not add children manually.    -->
+    <div class="intro-photos" id="introPhotos" aria-hidden="true"></div>
 
-    <!-- ── Main canvas ────────────────────────────────── -->
+    <!-- ── Foreground canvas — signature, name, button ── -->
     <div class="intro-canvas">
 
-      <!-- Handwritten signature — draws itself left to right -->
+      <!-- Handwritten signature draws itself left to right -->
       <div class="intro-signature-wrap" id="introSigWrap">
         <span class="intro-signature" id="introSig">Aarav Pokharna</span>
-        <!-- Pen tip moves along the right edge of the reveal -->
         <span class="intro-pen" id="introPen" aria-hidden="true"></span>
       </div>
 
-      <!-- Display name — zooms in from behind -->
+      <!-- Display name zooms in from behind -->
       <h1 class="intro-name" id="introName">
         <span class="intro-name-word">Aarav</span>
         <span class="intro-name-word">Pokharna</span>
       </h1>
 
-      <!-- Scroll hint — appears after the sequence settles -->
-      <p class="intro-hint" id="introHint">scroll to explore</p>
+      <!-- Explore button — appears after sequence, goes to main site -->
+      <button class="intro-explore" id="introExplore" aria-label="Enter the site">
+        Explore
+      </button>
 
     </div>
-
-    <!-- Skip button — for returning visitors -->
-    <button class="intro-skip" id="introSkip">Skip intro</button>
 
   </div>
   <!-- End intro -->

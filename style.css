@@ -660,9 +660,9 @@ img {
 }
 
 
-/* ── 10. CINEMATIC INTRO ─────────────────────────────────────── */
+/* ── 10. CINEMATIC INTRO — PERMANENT LANDING PAGE ───────────── */
 
-/* Full-screen white overlay — sits above everything */
+/* Full-screen landing page — fixed, sits above the main site */
 #intro {
   position: fixed;
   inset: 0;
@@ -672,52 +672,54 @@ img {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-
-  /* Fade out when JS adds .intro-done */
-  transition: opacity 1s var(--ease);
+  cursor: crosshair;  /* signals the screen is interactive */
 }
 
+/* Fade out when JS adds .intro-done (triggered by Explore click) */
 #intro.intro-done {
   opacity: 0;
   pointer-events: none;
+  transition: opacity 1.1s var(--ease);
 }
 
-/* When the overlay is fully gone, JS also adds .intro-hidden
-   which removes it from the layout entirely */
+/* Fully removed from layout after fade */
 #intro.intro-hidden {
   display: none;
 }
 
-/* ── Photos layer (behind everything else in the intro) ─────── */
-/* Photos are revealed only under the cursor via mask-image.
-   --mx and --my are set by JS on mousemove.
-   --radius grows from 0 to full when cursor is active.        */
+/* ── 16×9 Photo grid ─────────────────────────────────────────
+   144 cells (16 cols × 9 rows) tile the full viewport.
+   JS populates each cell. The flashlight mask reveals photos
+   only within a circle around the cursor.                    */
 .intro-photos {
   position: absolute;
   inset: 0;
-  pointer-events: none;   /* cursor events pass through to canvas */
+  display: grid;
+  grid-template-columns: repeat(16, 1fr);
+  grid-template-rows: repeat(9, 1fr);
+  pointer-events: none;    /* cursor passes through to intro layer */
   z-index: 0;
 
-  /* The flashlight: only show photos within a circle under cursor */
+  /* Flashlight: only show within a circle under the cursor.
+     --mx / --my / --radius are set by JS on mousemove.      */
   -webkit-mask-image: radial-gradient(
     circle var(--radius, 0px) at var(--mx, 50%) var(--my, 50%),
     black 0%,
-    black 55%,
+    black 60%,
     transparent 100%
   );
   mask-image: radial-gradient(
     circle var(--radius, 0px) at var(--mx, 50%) var(--my, 50%),
     black 0%,
-    black 55%,
+    black 60%,
     transparent 100%
   );
-  transition: --radius 0.4s ease;  /* smooth radius expand/collapse */
 }
 
-/* Individual photo — positioned absolutely around the canvas */
+/* Each grid cell — fills its slot exactly */
 .intro-photo {
-  position: absolute;
-  border-radius: 6px;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
 }
 
@@ -728,64 +730,33 @@ img {
   display: block;
 }
 
-/* Placeholder boxes shown until real photos are added
-   ✏️  Replace each .intro-photo-placeholder with an <img> */
+/* Placeholder shown until real photos are added.
+   ✏️  Edit PHOTOS array in script.js to use real images.
+   Alternates between two warm shades so the grid is visible. */
 .intro-photo-placeholder {
   width: 100%;
   height: 100%;
-  background: var(--accent-light);
-  position: relative;
 }
 
-.intro-photo-placeholder::after {
-  content: 'photo';
-  position: absolute;
-  bottom: 8px;
-  left: 12px;
-  font-size: 0.6rem;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--accent);
-  opacity: 0.6;
-}
+.intro-photo-placeholder.shade-a { background: var(--accent-light); }
+.intro-photo-placeholder.shade-b { background: #e8c9bc; }
 
-/* Six photo positions — scattered across the screen naturally */
-.intro-photo.p1 { width: 220px; height: 280px; top: 8%;  left: 6%;  transform: rotate(-4deg); }
-.intro-photo.p2 { width: 180px; height: 240px; top: 12%; right: 8%; transform: rotate(3deg);  }
-.intro-photo.p3 { width: 260px; height: 200px; top: 55%; left: 3%;  transform: rotate(2deg);  }
-.intro-photo.p4 { width: 200px; height: 260px; top: 60%; right: 5%; transform: rotate(-3deg); }
-.intro-photo.p5 { width: 170px; height: 220px; top: 30%; left: 18%; transform: rotate(1deg);  }
-.intro-photo.p6 { width: 190px; height: 210px; top: 28%; right: 18%;transform: rotate(-2deg); }
-
-/* Mobile: scale photos down */
-@media (max-width: 600px) {
-  .intro-photo.p1 { width: 130px; height: 165px; }
-  .intro-photo.p2 { width: 110px; height: 145px; }
-  .intro-photo.p3 { width: 150px; height: 120px; }
-  .intro-photo.p4 { width: 120px; height: 155px; }
-  .intro-photo.p5 { width: 100px; height: 130px; }
-  .intro-photo.p6 { width: 115px; height: 125px; }
-}
-
-/* ── Intro canvas — holds signature + name ──────────────────── */
+/* ── Foreground canvas ───────────────────────────────────────── */
 .intro-canvas {
   position: relative;
   z-index: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0;
   text-align: center;
-  /* Pointer events so hover still works even through canvas */
-  pointer-events: none;
+  pointer-events: none;   /* pass cursor through for photo reveal */
 }
 
-/* ── Signature draw animation ────────────────────────────────── */
+/* ── Signature draw ──────────────────────────────────────────── */
 .intro-signature-wrap {
   position: relative;
   display: inline-block;
   margin-bottom: 8px;
-  /* Initially invisible — JS adds .sig-start to begin */
   opacity: 0;
 }
 
@@ -793,7 +764,7 @@ img {
   opacity: 1;
 }
 
-/* The signature text itself — clipped from left to right */
+/* Clip from right, animates to reveal left-to-right */
 .intro-signature {
   font-family: var(--font-sig);
   font-size: clamp(36px, 6vw, 68px);
@@ -801,8 +772,6 @@ img {
   line-height: 1.2;
   display: block;
   white-space: nowrap;
-
-  /* Start fully clipped (invisible), animate to fully revealed */
   clip-path: inset(0 100% 0 0);
   transition: clip-path 1.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -811,11 +780,11 @@ img {
   clip-path: inset(0 0% 0 0);
 }
 
-/* Pen tip — a small dot that follows the right edge of the reveal */
+/* Pen tip dot — travels with the drawing edge */
 .intro-pen {
   position: absolute;
   top: 50%;
-  left: 0;        /* JS will update via transform: translateX */
+  left: 0;
   width: 7px;
   height: 7px;
   border-radius: 50%;
@@ -829,18 +798,15 @@ img {
 
 .intro-signature-wrap.sig-draw .intro-pen {
   opacity: 1;
-  /* The pen moves from x=0 to the full width of the signature.
-     JS sets --sig-width as a CSS variable on the wrap element. */
   transform: translate(var(--sig-width, 0px), -50%);
 }
 
-/* Fade the whole signature wrap out */
 .intro-signature-wrap.sig-fade {
   opacity: 0;
   transition: opacity 0.7s ease;
 }
 
-/* ── Name zoom animation ─────────────────────────────────────── */
+/* ── Name zoom ───────────────────────────────────────────────── */
 .intro-name {
   font-family: var(--font-display);
   font-size: clamp(64px, 14vw, 160px);
@@ -850,8 +816,6 @@ img {
   display: flex;
   flex-direction: column;
   align-items: center;
-
-  /* Start tiny and invisible — zoom in on cue */
   opacity: 0;
   transform: scale(0.08);
   transition:
@@ -868,70 +832,43 @@ img {
   display: block;
 }
 
-/* ── Scroll hint ─────────────────────────────────────────────── */
-.intro-hint {
-  font-size: 0.65rem;
-  letter-spacing: 0.25em;
+/* ── Explore button ──────────────────────────────────────────── */
+.intro-explore {
+  margin-top: 40px;
+  padding: 14px 44px;
+  background: var(--ink);
+  color: var(--bg);
+  border: none;
+  border-radius: 3px;
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--ink-light);
-  margin-top: 32px;
+  cursor: pointer;
+  pointer-events: all;   /* re-enable so button is clickable */
+
+  /* Starts hidden — JS shows it after the name settles */
   opacity: 0;
-  transform: translateY(8px);
+  transform: translateY(12px);
   transition:
     opacity 0.6s ease,
-    transform 0.6s ease;
+    transform 0.6s ease,
+    background-color 0.2s ease;
 }
 
-.intro-hint.hint-show {
+.intro-explore.btn-show {
   opacity: 1;
   transform: translateY(0);
 }
 
-/* ── Skip button ─────────────────────────────────────────────── */
-.intro-skip {
-  position: absolute;
-  bottom: 32px;
-  right: 36px;
-  background: none;
-  border: 1px solid rgba(15, 15, 15, 0.2);
-  border-radius: 4px;
-  padding: 8px 16px;
-  font-family: var(--font-body);
-  font-size: 0.7rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--ink-light);
-  cursor: pointer;
-  pointer-events: all;
-  transition: color 0.2s ease, border-color 0.2s ease;
-  z-index: 2;
+.intro-explore:hover {
+  background: var(--accent);
 }
 
-.intro-skip:hover {
-  color: var(--accent);
-  border-color: var(--accent);
-}
-
-/* ── Reduced motion: skip animation, show name immediately ───── */
+/* ── Reduced motion: skip sequence, show everything instantly ── */
 @media (prefers-reduced-motion: reduce) {
-  #intro {
-    transition: opacity 0.3s ease;
-  }
-
-  .intro-signature {
-    clip-path: inset(0 0% 0 0);
-    transition: none;
-  }
-
-  .intro-name {
-    opacity: 1;
-    transform: scale(1);
-    transition: none;
-  }
-
-  .intro-hint {
-    opacity: 1;
-    transform: none;
-    transition: none;
-  }
+  .intro-signature { clip-path: inset(0 0% 0 0); transition: none; }
+  .intro-name      { opacity: 1; transform: scale(1); transition: none; }
+  .intro-explore   { opacity: 1; transform: none; transition: background-color 0.2s ease; }
 }

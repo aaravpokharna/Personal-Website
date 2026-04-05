@@ -1,137 +1,174 @@
 /* ============================================================
    PERSONAL WEBSITE — script.js
    What this file does:
-     0. Cinematic intro sequence (plays before main site):
+     0. Cinematic intro — permanent landing page:
+        - 16×9 photo grid generated and filled in JS
         - Signature draws itself left to right
-        - Name zooms in from tiny to full
-        - Signature fades, name settles
-        - Cursor acts as flashlight revealing photos
-     1. Hero entrance animation (staggered fade-in on page load)
-     2. Scroll-reveal animation (elements slide up as you scroll)
-     3. Basketball bucket list:
-        - Drag left/right to spin the ball (with momentum)
-        - Click a sector (or a label) to open its content panel
-        - Idle spin plays gently on load
+        - Name zooms in, signature fades
+        - Explore button appears — clicking it reveals the site
+        - Cursor acts as flashlight over the photo grid
+     1. Hero entrance animation (staggered fade-in)
+     2. Scroll-reveal animation
+     3. Basketball bucket list (drag to spin, click to open)
    ============================================================ */
 
 
-/* ── 0. CINEMATIC INTRO SEQUENCE ────────────────────────────
-   Full-screen white overlay that plays on first visit.
+/* ── 0. CINEMATIC INTRO ──────────────────────────────────────
+   The intro is the permanent landing page.
+   It stays visible until the user clicks Explore.
 
-   Timeline:
-     300ms  — signature wrap fades in, draw begins
+   Timeline (animation sequence):
+     300ms  — signature starts drawing
      1700ms — signature fully drawn
-     2100ms — name starts zooming in from tiny
+     2100ms — name zooms in from scale(0.08)
      2900ms — signature fades out
-     3500ms — scroll hint appears
-     4200ms — intro fades away, main site is revealed
+     3500ms — Explore button appears, photo grid activates
 
-   Hover:
-     After the name settles, moving the cursor over the screen
-     acts as a flashlight — revealing photos positioned behind.
-
-   To skip: user clicks "Skip intro" button, or it auto-skips
-   if reduced-motion is preferred.
+   ✏️  TO ADD YOUR PHOTOS:
+   Replace the strings in the PHOTOS array below with paths
+   to your image files (e.g. 'assets/photos/photo1.jpg').
+   They will tile across all 144 grid cells automatically.
    ──────────────────────────────────────────────────────────── */
 
+// ✏️ Add your photo paths here — they tile across the 16×9 grid.
+// Leave empty strings to use the warm placeholder background.
+const PHOTOS = [
+  '', // e.g. 'assets/photos/photo1.jpg'
+  '',
+  '',
+  '',
+  '',
+  '',
+];
+
+// Grid dimensions: 16 columns × 9 rows = 144 cells
+const GRID_COLS = 16;
+const GRID_ROWS = 9;
+const GRID_TOTAL = GRID_COLS * GRID_ROWS;
+
 function initIntro() {
-  const intro    = document.getElementById('intro');
-  const sigWrap  = document.getElementById('introSigWrap');
-  const sig      = document.getElementById('introSig');
-  const name     = document.getElementById('introName');
-  const hint     = document.getElementById('introHint');
-  const skipBtn  = document.getElementById('introSkip');
-  const photos   = document.getElementById('introPhotos');
+  const intro      = document.getElementById('intro');
+  const sigWrap    = document.getElementById('introSigWrap');
+  const sig        = document.getElementById('introSig');
+  const name       = document.getElementById('introName');
+  const exploreBtn = document.getElementById('introExplore');
+  const photos     = document.getElementById('introPhotos');
 
   if (!intro) return;
 
-  // ── Reduced motion: skip everything immediately ──────────────
+  // ── Lock body scroll while intro is showing ─────────────────
+  document.body.style.overflow = 'hidden';
+
+  // ── Build the 16×9 photo grid ────────────────────────────────
+  // Creates GRID_TOTAL cells and cycles through PHOTOS array.
+  // If no real photos: alternates placeholder shades so the
+  // grid is visible when the flashlight passes over it.
+  buildPhotoGrid();
+
+  function buildPhotoGrid() {
+    if (!photos) return;
+
+    const hasRealPhotos = PHOTOS.some(p => p.length > 0);
+
+    for (let i = 0; i < GRID_TOTAL; i++) {
+      const cell = document.createElement('div');
+      cell.className = 'intro-photo';
+
+      const src = PHOTOS[i % PHOTOS.length];
+
+      if (hasRealPhotos && src) {
+        const img = document.createElement('img');
+        img.src = src;
+        img.alt = '';                       // decorative
+        img.loading = 'lazy';
+        cell.appendChild(img);
+      } else {
+        // Warm placeholder — alternates two shades in a checkerboard
+        const placeholder = document.createElement('div');
+        const shade = (Math.floor(i / GRID_COLS) + (i % GRID_COLS)) % 2 === 0
+          ? 'shade-a'
+          : 'shade-b';
+        placeholder.className = `intro-photo-placeholder ${shade}`;
+        cell.appendChild(placeholder);
+      }
+
+      photos.appendChild(cell);
+    }
+  }
+
+  // ── Reduced motion: skip animation, show button immediately ──
   const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (prefersReduced) {
-    finishIntro();
+    if (name) name.classList.add('name-show');
+    if (exploreBtn) exploreBtn.classList.add('btn-show');
+    activatePhotoReveal();
+    bindExploreButton();
     return;
   }
 
-  // ── Prevent body scroll while intro plays ───────────────────
-  document.body.style.overflow = 'hidden';
-
-  // ── Measure signature width so pen tip travels to the right end
+  // ── Measure signature width for pen tip travel ───────────────
   function measureSig() {
     const w = sig ? sig.getBoundingClientRect().width : 0;
     if (sigWrap) sigWrap.style.setProperty('--sig-width', `${w}px`);
   }
 
-  // ── Sequence ─────────────────────────────────────────────────
-  const timers = [];
-
-  function later(fn, ms) {
-    const id = setTimeout(fn, ms);
-    timers.push(id);
-    return id;
-  }
-
-  // Step 1: Signature wrap appears, draw starts
-  later(() => {
+  // ── Animation sequence ────────────────────────────────────────
+  // Step 1: Signature draws
+  setTimeout(() => {
     if (!sigWrap) return;
     measureSig();
     sigWrap.classList.add('sig-start');
-    // Small gap so opacity transition fires before clip
     setTimeout(() => sigWrap.classList.add('sig-draw'), 40);
   }, 300);
 
   // Step 2: Name zooms in
-  later(() => {
+  setTimeout(() => {
     if (name) name.classList.add('name-show');
   }, 2100);
 
   // Step 3: Signature fades out
-  later(() => {
+  setTimeout(() => {
     if (sigWrap) sigWrap.classList.add('sig-fade');
   }, 2900);
 
-  // Step 4: Scroll hint appears, photo hover activates
-  later(() => {
-    if (hint) hint.classList.add('hint-show');
+  // Step 4: Explore button appears, photo flashlight activates
+  setTimeout(() => {
+    if (exploreBtn) exploreBtn.classList.add('btn-show');
     activatePhotoReveal();
+    bindExploreButton();
   }, 3500);
 
-  // Step 5: Intro fades, main site revealed
-  later(finishIntro, 5200);
-
   // ── Photo flashlight reveal ───────────────────────────────────
-  // Updates CSS custom properties on .intro-photos so the
-  // radial-gradient mask follows the cursor.
+  // Moves the CSS radial-gradient mask so it follows the cursor,
+  // revealing the photo grid only under a circle of light.
   function activatePhotoReveal() {
     if (!photos) return;
 
-    let photoActive = false;
+    let isOver = false;
+    const REVEAL_RADIUS = '280px';
 
     function handleMove(clientX, clientY) {
-      // Convert page coords to percentage for robustness on resize
       photos.style.setProperty('--mx', `${clientX}px`);
       photos.style.setProperty('--my', `${clientY}px`);
 
-      if (!photoActive) {
-        photoActive = true;
-        // Animate the radius from 0 to the reveal size
-        photos.style.setProperty('--radius', '0px');
+      if (!isOver) {
+        isOver = true;
+        // Smooth radius open
         requestAnimationFrame(() => {
-          photos.style.transition = '--radius 0.5s ease';
-          photos.style.setProperty('--radius', '220px');
+          photos.style.setProperty('--radius', REVEAL_RADIUS);
         });
       }
     }
 
     function handleLeave() {
-      photos.style.transition = '--radius 0.6s ease';
+      isOver = false;
       photos.style.setProperty('--radius', '0px');
-      photoActive = false;
     }
 
     intro.addEventListener('mousemove', (e) => handleMove(e.clientX, e.clientY));
     intro.addEventListener('mouseleave', handleLeave);
 
-    // Touch support — single finger drag
+    // Touch: single finger acts as the flashlight
     intro.addEventListener('touchmove', (e) => {
       const t = e.touches[0];
       handleMove(t.clientX, t.clientY);
@@ -140,28 +177,24 @@ function initIntro() {
     intro.addEventListener('touchend', handleLeave);
   }
 
-  // ── Finish: fade intro out, restore scroll ───────────────────
-  function finishIntro() {
-    // Clear any remaining timers
-    timers.forEach(id => clearTimeout(id));
+  // ── Explore button: exit intro, reveal main site ─────────────
+  function bindExploreButton() {
+    if (!exploreBtn) return;
 
-    document.body.style.overflow = '';
-    if (!intro) return;
+    exploreBtn.addEventListener('click', () => {
+      intro.classList.add('intro-done');
 
-    intro.classList.add('intro-done');
+      // Re-enable scroll
+      document.body.style.overflow = '';
 
-    // After fade transition ends, remove from DOM entirely
-    intro.addEventListener('transitionend', () => {
-      intro.classList.add('intro-hidden');
-    }, { once: true });
+      // After the CSS fade finishes, remove the overlay from layout
+      intro.addEventListener('transitionend', () => {
+        intro.classList.add('intro-hidden');
+      }, { once: true });
 
-    // Then kick off the main hero entrance
-    initHero();
-  }
-
-  // ── Skip button ───────────────────────────────────────────────
-  if (skipBtn) {
-    skipBtn.addEventListener('click', finishIntro);
+      // Fire the hero entrance animation
+      initHero();
+    });
   }
 }
 
