@@ -18,6 +18,71 @@
 
 <body>
 
+  <!-- ================================================ -->
+  <!--   CINEMATIC INTRO OVERLAY                        -->
+  <!--   Plays on first visit, then fades away.         -->
+  <!--   Add your photos inside .intro-photos below.    -->
+  <!-- ================================================ -->
+  <div id="intro" role="presentation" aria-hidden="true">
+
+    <!-- ── Photo layer ───────────────────────────────────
+         Photos live here, revealed by the cursor flashlight.
+         ✏️ Replace the placeholder divs with real <img> tags.
+         Example:
+           <img class="intro-photo" src="assets/photos/photo1.jpg" alt="" />
+         Keep alt="" — these are decorative, not content.
+         Positions are set by CSS classes p1–p6.
+    ──────────────────────────────────────────────────── -->
+    <div class="intro-photos" id="introPhotos">
+      <div class="intro-photo p1" aria-hidden="true">
+        <!-- <img src="assets/photos/photo1.jpg" alt="" /> -->
+        <div class="intro-photo-placeholder"></div>
+      </div>
+      <div class="intro-photo p2" aria-hidden="true">
+        <div class="intro-photo-placeholder"></div>
+      </div>
+      <div class="intro-photo p3" aria-hidden="true">
+        <div class="intro-photo-placeholder"></div>
+      </div>
+      <div class="intro-photo p4" aria-hidden="true">
+        <div class="intro-photo-placeholder"></div>
+      </div>
+      <div class="intro-photo p5" aria-hidden="true">
+        <div class="intro-photo-placeholder"></div>
+      </div>
+      <div class="intro-photo p6" aria-hidden="true">
+        <div class="intro-photo-placeholder"></div>
+      </div>
+    </div>
+
+    <!-- ── Main canvas ────────────────────────────────── -->
+    <div class="intro-canvas">
+
+      <!-- Handwritten signature — draws itself left to right -->
+      <div class="intro-signature-wrap" id="introSigWrap">
+        <span class="intro-signature" id="introSig">Aarav Pokharna</span>
+        <!-- Pen tip moves along the right edge of the reveal -->
+        <span class="intro-pen" id="introPen" aria-hidden="true"></span>
+      </div>
+
+      <!-- Display name — zooms in from behind -->
+      <h1 class="intro-name" id="introName">
+        <span class="intro-name-word">Aarav</span>
+        <span class="intro-name-word">Pokharna</span>
+      </h1>
+
+      <!-- Scroll hint — appears after the sequence settles -->
+      <p class="intro-hint" id="introHint">scroll to explore</p>
+
+    </div>
+
+    <!-- Skip button — for returning visitors -->
+    <button class="intro-skip" id="introSkip">Skip intro</button>
+
+  </div>
+  <!-- End intro -->
+
+
   <!-- ===================== -->
   <!--   SECTION 1: HERO     -->
   <!-- ===================== -->

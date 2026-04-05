@@ -1,6 +1,11 @@
 /* ============================================================
    PERSONAL WEBSITE — script.js
    What this file does:
+     0. Cinematic intro sequence (plays before main site):
+        - Signature draws itself left to right
+        - Name zooms in from tiny to full
+        - Signature fades, name settles
+        - Cursor acts as flashlight revealing photos
      1. Hero entrance animation (staggered fade-in on page load)
      2. Scroll-reveal animation (elements slide up as you scroll)
      3. Basketball bucket list:
@@ -8,6 +13,157 @@
         - Click a sector (or a label) to open its content panel
         - Idle spin plays gently on load
    ============================================================ */
+
+
+/* ── 0. CINEMATIC INTRO SEQUENCE ────────────────────────────
+   Full-screen white overlay that plays on first visit.
+
+   Timeline:
+     300ms  — signature wrap fades in, draw begins
+     1700ms — signature fully drawn
+     2100ms — name starts zooming in from tiny
+     2900ms — signature fades out
+     3500ms — scroll hint appears
+     4200ms — intro fades away, main site is revealed
+
+   Hover:
+     After the name settles, moving the cursor over the screen
+     acts as a flashlight — revealing photos positioned behind.
+
+   To skip: user clicks "Skip intro" button, or it auto-skips
+   if reduced-motion is preferred.
+   ──────────────────────────────────────────────────────────── */
+
+function initIntro() {
+  const intro    = document.getElementById('intro');
+  const sigWrap  = document.getElementById('introSigWrap');
+  const sig      = document.getElementById('introSig');
+  const name     = document.getElementById('introName');
+  const hint     = document.getElementById('introHint');
+  const skipBtn  = document.getElementById('introSkip');
+  const photos   = document.getElementById('introPhotos');
+
+  if (!intro) return;
+
+  // ── Reduced motion: skip everything immediately ──────────────
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (prefersReduced) {
+    finishIntro();
+    return;
+  }
+
+  // ── Prevent body scroll while intro plays ───────────────────
+  document.body.style.overflow = 'hidden';
+
+  // ── Measure signature width so pen tip travels to the right end
+  function measureSig() {
+    const w = sig ? sig.getBoundingClientRect().width : 0;
+    if (sigWrap) sigWrap.style.setProperty('--sig-width', `${w}px`);
+  }
+
+  // ── Sequence ─────────────────────────────────────────────────
+  const timers = [];
+
+  function later(fn, ms) {
+    const id = setTimeout(fn, ms);
+    timers.push(id);
+    return id;
+  }
+
+  // Step 1: Signature wrap appears, draw starts
+  later(() => {
+    if (!sigWrap) return;
+    measureSig();
+    sigWrap.classList.add('sig-start');
+    // Small gap so opacity transition fires before clip
+    setTimeout(() => sigWrap.classList.add('sig-draw'), 40);
+  }, 300);
+
+  // Step 2: Name zooms in
+  later(() => {
+    if (name) name.classList.add('name-show');
+  }, 2100);
+
+  // Step 3: Signature fades out
+  later(() => {
+    if (sigWrap) sigWrap.classList.add('sig-fade');
+  }, 2900);
+
+  // Step 4: Scroll hint appears, photo hover activates
+  later(() => {
+    if (hint) hint.classList.add('hint-show');
+    activatePhotoReveal();
+  }, 3500);
+
+  // Step 5: Intro fades, main site revealed
+  later(finishIntro, 5200);
+
+  // ── Photo flashlight reveal ───────────────────────────────────
+  // Updates CSS custom properties on .intro-photos so the
+  // radial-gradient mask follows the cursor.
+  function activatePhotoReveal() {
+    if (!photos) return;
+
+    let photoActive = false;
+
+    function handleMove(clientX, clientY) {
+      // Convert page coords to percentage for robustness on resize
+      photos.style.setProperty('--mx', `${clientX}px`);
+      photos.style.setProperty('--my', `${clientY}px`);
+
+      if (!photoActive) {
+        photoActive = true;
+        // Animate the radius from 0 to the reveal size
+        photos.style.setProperty('--radius', '0px');
+        requestAnimationFrame(() => {
+          photos.style.transition = '--radius 0.5s ease';
+          photos.style.setProperty('--radius', '220px');
+        });
+      }
+    }
+
+    function handleLeave() {
+      photos.style.transition = '--radius 0.6s ease';
+      photos.style.setProperty('--radius', '0px');
+      photoActive = false;
+    }
+
+    intro.addEventListener('mousemove', (e) => handleMove(e.clientX, e.clientY));
+    intro.addEventListener('mouseleave', handleLeave);
+
+    // Touch support — single finger drag
+    intro.addEventListener('touchmove', (e) => {
+      const t = e.touches[0];
+      handleMove(t.clientX, t.clientY);
+    }, { passive: true });
+
+    intro.addEventListener('touchend', handleLeave);
+  }
+
+  // ── Finish: fade intro out, restore scroll ───────────────────
+  function finishIntro() {
+    // Clear any remaining timers
+    timers.forEach(id => clearTimeout(id));
+
+    document.body.style.overflow = '';
+    if (!intro) return;
+
+    intro.classList.add('intro-done');
+
+    // After fade transition ends, remove from DOM entirely
+    intro.addEventListener('transitionend', () => {
+      intro.classList.add('intro-hidden');
+    }, { once: true });
+
+    // Then kick off the main hero entrance
+    initHero();
+  }
+
+  // ── Skip button ───────────────────────────────────────────────
+  if (skipBtn) {
+    skipBtn.addEventListener('click', finishIntro);
+  }
+}
 
 
 /* ── 1. HERO ENTRANCE ANIMATION ─────────────────────────────
@@ -282,9 +438,11 @@ function initBasketball() {
 }
 
 
-/* ── 4. INIT — run everything on DOMContentLoaded ────────────*/
+/* ── 4. INIT — run everything on DOMContentLoaded ────────────
+   Note: initHero() is called by initIntro() once the overlay
+   fades, so it is NOT called directly here.                  */
 document.addEventListener('DOMContentLoaded', () => {
-  initHero();
-  initScrollReveal();
-  initBasketball();
+  initIntro();        // plays the cinematic intro, then calls initHero()
+  initScrollReveal(); // safe to start observing right away
+  initBasketball();   // basketball is below the fold, no conflict
 });

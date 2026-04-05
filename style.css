@@ -658,3 +658,280 @@ img {
   }
 
 }
+
+
+/* ── 10. CINEMATIC INTRO ─────────────────────────────────────── */
+
+/* Full-screen white overlay — sits above everything */
+#intro {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  background: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+
+  /* Fade out when JS adds .intro-done */
+  transition: opacity 1s var(--ease);
+}
+
+#intro.intro-done {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* When the overlay is fully gone, JS also adds .intro-hidden
+   which removes it from the layout entirely */
+#intro.intro-hidden {
+  display: none;
+}
+
+/* ── Photos layer (behind everything else in the intro) ─────── */
+/* Photos are revealed only under the cursor via mask-image.
+   --mx and --my are set by JS on mousemove.
+   --radius grows from 0 to full when cursor is active.        */
+.intro-photos {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;   /* cursor events pass through to canvas */
+  z-index: 0;
+
+  /* The flashlight: only show photos within a circle under cursor */
+  -webkit-mask-image: radial-gradient(
+    circle var(--radius, 0px) at var(--mx, 50%) var(--my, 50%),
+    black 0%,
+    black 55%,
+    transparent 100%
+  );
+  mask-image: radial-gradient(
+    circle var(--radius, 0px) at var(--mx, 50%) var(--my, 50%),
+    black 0%,
+    black 55%,
+    transparent 100%
+  );
+  transition: --radius 0.4s ease;  /* smooth radius expand/collapse */
+}
+
+/* Individual photo — positioned absolutely around the canvas */
+.intro-photo {
+  position: absolute;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.intro-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Placeholder boxes shown until real photos are added
+   ✏️  Replace each .intro-photo-placeholder with an <img> */
+.intro-photo-placeholder {
+  width: 100%;
+  height: 100%;
+  background: var(--accent-light);
+  position: relative;
+}
+
+.intro-photo-placeholder::after {
+  content: 'photo';
+  position: absolute;
+  bottom: 8px;
+  left: 12px;
+  font-size: 0.6rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent);
+  opacity: 0.6;
+}
+
+/* Six photo positions — scattered across the screen naturally */
+.intro-photo.p1 { width: 220px; height: 280px; top: 8%;  left: 6%;  transform: rotate(-4deg); }
+.intro-photo.p2 { width: 180px; height: 240px; top: 12%; right: 8%; transform: rotate(3deg);  }
+.intro-photo.p3 { width: 260px; height: 200px; top: 55%; left: 3%;  transform: rotate(2deg);  }
+.intro-photo.p4 { width: 200px; height: 260px; top: 60%; right: 5%; transform: rotate(-3deg); }
+.intro-photo.p5 { width: 170px; height: 220px; top: 30%; left: 18%; transform: rotate(1deg);  }
+.intro-photo.p6 { width: 190px; height: 210px; top: 28%; right: 18%;transform: rotate(-2deg); }
+
+/* Mobile: scale photos down */
+@media (max-width: 600px) {
+  .intro-photo.p1 { width: 130px; height: 165px; }
+  .intro-photo.p2 { width: 110px; height: 145px; }
+  .intro-photo.p3 { width: 150px; height: 120px; }
+  .intro-photo.p4 { width: 120px; height: 155px; }
+  .intro-photo.p5 { width: 100px; height: 130px; }
+  .intro-photo.p6 { width: 115px; height: 125px; }
+}
+
+/* ── Intro canvas — holds signature + name ──────────────────── */
+.intro-canvas {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  text-align: center;
+  /* Pointer events so hover still works even through canvas */
+  pointer-events: none;
+}
+
+/* ── Signature draw animation ────────────────────────────────── */
+.intro-signature-wrap {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 8px;
+  /* Initially invisible — JS adds .sig-start to begin */
+  opacity: 0;
+}
+
+.intro-signature-wrap.sig-start {
+  opacity: 1;
+}
+
+/* The signature text itself — clipped from left to right */
+.intro-signature {
+  font-family: var(--font-sig);
+  font-size: clamp(36px, 6vw, 68px);
+  color: var(--ink);
+  line-height: 1.2;
+  display: block;
+  white-space: nowrap;
+
+  /* Start fully clipped (invisible), animate to fully revealed */
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path 1.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.intro-signature-wrap.sig-draw .intro-signature {
+  clip-path: inset(0 0% 0 0);
+}
+
+/* Pen tip — a small dot that follows the right edge of the reveal */
+.intro-pen {
+  position: absolute;
+  top: 50%;
+  left: 0;        /* JS will update via transform: translateX */
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  transform: translate(0, -50%);
+  opacity: 0;
+  transition:
+    opacity 0.2s ease,
+    transform 1.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.intro-signature-wrap.sig-draw .intro-pen {
+  opacity: 1;
+  /* The pen moves from x=0 to the full width of the signature.
+     JS sets --sig-width as a CSS variable on the wrap element. */
+  transform: translate(var(--sig-width, 0px), -50%);
+}
+
+/* Fade the whole signature wrap out */
+.intro-signature-wrap.sig-fade {
+  opacity: 0;
+  transition: opacity 0.7s ease;
+}
+
+/* ── Name zoom animation ─────────────────────────────────────── */
+.intro-name {
+  font-family: var(--font-display);
+  font-size: clamp(64px, 14vw, 160px);
+  line-height: 0.95;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  /* Start tiny and invisible — zoom in on cue */
+  opacity: 0;
+  transform: scale(0.08);
+  transition:
+    opacity 0.9s var(--ease),
+    transform 0.9s var(--ease);
+}
+
+.intro-name.name-show {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.intro-name-word {
+  display: block;
+}
+
+/* ── Scroll hint ─────────────────────────────────────────────── */
+.intro-hint {
+  font-size: 0.65rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--ink-light);
+  margin-top: 32px;
+  opacity: 0;
+  transform: translateY(8px);
+  transition:
+    opacity 0.6s ease,
+    transform 0.6s ease;
+}
+
+.intro-hint.hint-show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Skip button ─────────────────────────────────────────────── */
+.intro-skip {
+  position: absolute;
+  bottom: 32px;
+  right: 36px;
+  background: none;
+  border: 1px solid rgba(15, 15, 15, 0.2);
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-light);
+  cursor: pointer;
+  pointer-events: all;
+  transition: color 0.2s ease, border-color 0.2s ease;
+  z-index: 2;
+}
+
+.intro-skip:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* ── Reduced motion: skip animation, show name immediately ───── */
+@media (prefers-reduced-motion: reduce) {
+  #intro {
+    transition: opacity 0.3s ease;
+  }
+
+  .intro-signature {
+    clip-path: inset(0 0% 0 0);
+    transition: none;
+  }
+
+  .intro-name {
+    opacity: 1;
+    transform: scale(1);
+    transition: none;
+  }
+
+  .intro-hint {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
